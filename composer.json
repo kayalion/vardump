@@ -1,0 +1,16 @@
+{
+    "name": "kayalion/vardump",
+    "description": "Helper library to print variables for debugging purposes",
+    "type": "library",
+    "keywords": ["debug"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Joris Vandeweerd",
+            "email": "kayalion@kayalion.net"
+        }
+    ],
+    "autoload": {
+        "files": ["src/VarDump.php"]
+    }
+}
