@@ -13,8 +13,32 @@ include __DIR__ . '/src/VarDump.php';
 // prints a variable
 d("any variable");
 
+// or multiple variables, as many as your memory can handle
+d("any variable", "any other variable");
+
 // prints a variable and exits
 dd("any variable");
+
+// or with multiple variables
+dd("any variable", "any other variable");
+
+// prints one variable with a specific dump configuration
+$maxRecursiveDepth = 10;
+$maxStringLength = 100;
+$theme = new HulkHtmlVarDumpTheme();
+
+dc("any variable", $maxRecursiveDepth, $maxStringLength, $theme);
+
+// as called for the sample the screenshots
+d([
+    null,
+    true,
+    42,
+    3.1415,
+    "any string",
+    new Exception(),
+    fopen('php://stdout', 'w'),
+]);
 ```
 
 ## Configuration
@@ -33,14 +57,23 @@ $_ENV['VAR_DUMP_STRING_LENGTH'] = 100;
 // Name of the CLI theme class, only one implemented
 $_ENV['VAR_DUMP_THEME_CLI'] = 'CliVarDumpTheme';
 
-// Name of the Html theme class, choose between:
+// Name of the HTML theme class, choose between:
 // - HtmlVarDumpTheme
-// - BlueHtmlVarDumpTheme
-// - RedHtmlVarDumpTheme,
-// - GreenHtmlVarDumpTheme,
-// - BrownHtmlVarDumpTheme,
-$_ENV['VAR_DUMP_THEME_HTML'] = 'HtmlVarDumpTheme';
+// - BatmanHtmlVarDumpTheme
+// - HulkHtmlVarDumpTheme,
+// - IronmanHtmlVarDumpTheme,
+// - SpidermanHtmlVarDumpTheme,
+// - SupermanHtmlVarDumpTheme,
+$_ENV['VAR_DUMP_THEME_HTML'] = 'SpidermanHtmlVarDumpTheme';
 ```
+
+## Screenshots
+
+Output on a HTML page:
+![Screenshot HTML](screenshot-html.png "Screenshot HTML")
+
+Output in a CLI:
+![Screenshot CLI](screenshot-cli.png "Screenshot CLI")
 
 ## Installation
 
