@@ -1,3 +1,7 @@
+# [2.1.1]
+## Updated 
+- readme
+
 # [2.1.0]
 ## Added
 - parameter to see if methods should be included
