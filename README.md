@@ -41,6 +41,16 @@ d([
 ]);
 ```
 
+## Screenshots
+
+Output on a HTML page:
+
+![Screenshot HTML](screenshot-html.png "Screenshot HTML")
+
+Output in a CLI:
+
+![Screenshot CLI](screenshot-cli.png "Screenshot CLI")
+
 ## Configuration
 
 You can use the environment variable to configure the vardump.
@@ -66,14 +76,6 @@ $_ENV['VAR_DUMP_THEME_CLI'] = 'CliVarDumpTheme';
 // - SupermanHtmlVarDumpTheme,
 $_ENV['VAR_DUMP_THEME_HTML'] = 'SpidermanHtmlVarDumpTheme';
 ```
-
-## Screenshots
-
-Output on a HTML page:
-![Screenshot HTML](screenshot-html.png "Screenshot HTML")
-
-Output in a CLI:
-![Screenshot CLI](screenshot-cli.png "Screenshot CLI")
 
 ## Installation
 
