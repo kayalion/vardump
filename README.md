@@ -7,9 +7,6 @@ PHP Helper library to print variables for debugging purposes.
 ```php
 <?php
 
-// when you use Composer, this is not necessairy
-include __DIR__ . '/src/VarDump.php';
-
 // prints a variable
 d("any variable");
 
@@ -23,6 +20,7 @@ dd("any variable");
 dd("any variable", "any other variable");
 
 // prints one variable with a specific dump configuration
+// set any configuration parameter to null to use the global value
 $maxRecursiveDepth = 10;
 $maxStringLength = 100;
 $includeMethods = true;
@@ -87,4 +85,12 @@ You can use [Composer](http://getcomposer.org) to install this helper into your 
 
 ```
 composer require kayalion/vardump
+```
+
+For manual installation, copy the ```src/VarDump.php``` file to your project and include it like:
+
+```php
+<?php 
+
+include __DIR__ . '/src/VarDump.php';
 ```
