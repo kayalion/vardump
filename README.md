@@ -66,7 +66,7 @@ $_ENV['VAR_DUMP_RECURSIVE_DEPTH'] = 10;
 // Maximum length for the preview of a string
 $_ENV['VAR_DUMP_STRING_LENGTH'] = 100;
 
-// Name of the CLI theme class, only one implemented
+// Name of the CLI theme class
 $_ENV['VAR_DUMP_THEME_CLI'] = 'CliVarDumpTheme';
 
 // Name of the HTML theme class, choose between:
@@ -77,6 +77,35 @@ $_ENV['VAR_DUMP_THEME_CLI'] = 'CliVarDumpTheme';
 // - SpidermanHtmlVarDumpTheme,
 // - SupermanHtmlVarDumpTheme,
 $_ENV['VAR_DUMP_THEME_HTML'] = 'SpidermanHtmlVarDumpTheme';
+```
+
+### Dump To File
+
+When you are debugging a web application with API requests, output can break your response or layout.
+
+You can easily pipe the vardump output to a file using the file theme.
+
+```php
+<?php
+
+// the file to dump to
+$file = __DIR__ . '/vardump.log';
+
+// create a theme to log to the file
+$theme = new FileVarDumpTheme($file);
+
+// you can also provide a truncate size in KB, defaults to 1MB
+$theme = new FileVarDumpTheme($file, 4096); // 4MB
+
+// set the theme for both environments
+$_ENV['VAR_DUMP_THEME_CLI'] = $theme;
+$_ENV['VAR_DUMP_THEME_HTML'] = $theme;
+```
+
+Once the log file is created, you can use the ```tail``` command to keep an eye on it:
+
+```
+tail -f vardump.log
 ```
 
 ## Installation

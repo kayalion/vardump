@@ -1,3 +1,9 @@
+# [3.0.0]
+## Added
+- theme to dump to file
+- constants for the defaults 
+- argument validation
+
 # [2.1.2]
 ## Updated
 - renamed print() to dump() for BC with old PHP versions
