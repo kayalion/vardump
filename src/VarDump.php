@@ -17,7 +17,7 @@ if (!function_exists('d')) {
 
         $variables = func_get_args();
         foreach ($variables as $variable) {
-            $varDump->print($variable);
+            $varDump->dump($variable);
         }
     }
 }
@@ -51,7 +51,7 @@ if (!function_exists('dc')) {
      */
     function dc($variable, $recursiveDepth = null, $stringLength = null, $includeMethods = null, VarDumpTheme $theme = null) {
         $varDump = new VarDump($recursiveDepth, $stringLength, $includeMethods, $theme);
-        $varDump->print($variable);
+        $varDump->dump($variable);
     }
 }
 
@@ -122,18 +122,18 @@ class VarDump {
      * @var mixed $value Value to print
      * @return null
      */
-    public function print($value) {
+    public function dump($value) {
         $output = '';
 
         if ($this->isFirst) {
             $this->isFirst = false;
 
-            $output .= $this->theme->beforeFirstPrint();
+            $output .= $this->theme->beforeFirstDump();
         }
 
-        $output .= $this->theme->beforePrint($this->getTrace());
+        $output .= $this->theme->beforeDump($this->getTrace());
         $output .= $this->getValue($value);
-        $output .= $this->theme->afterPrint();
+        $output .= $this->theme->afterDump();
 
         echo $output;
     }
@@ -353,20 +353,20 @@ interface VarDumpTheme {
      * Hook to generate output before the first print
      * @return string Output before the first print
      */
-    public function beforeFirstPrint();
+    public function beforeFirstDump();
 
     /**
      * Hook to generate output before the print
      * @param string $trace File and linenumber where the output is generated
      * @return string Output before the print
      */
-    public function beforePrint($trace);
+    public function beforeDump($trace);
 
     /**
      * Hook to generate output after the print
      * @return string Output after the print
      */
-    public function afterPrint();
+    public function afterDump();
 
     /**
      * Formats a single value
@@ -406,7 +406,7 @@ interface VarDumpTheme {
      * Hook to generate output before the first print
      * @return string Output before the first print
      */
-    public function beforeFirstPrint() {
+    public function beforeFirstDump() {
         return null;
     }
 
@@ -414,7 +414,7 @@ interface VarDumpTheme {
      * Hook to generate output before the print
      * @return string Output before the print
      */
-    public function beforePrint($trace) {
+    public function beforeDump($trace) {
         return "\n[" . $trace . "]\n";
     }
 
@@ -422,7 +422,7 @@ interface VarDumpTheme {
      * Hook to generate output after the print
      * @return string Output after the print
      */
-    public function afterPrint() {
+    public function afterDump() {
         return "\n";
     }
 
@@ -538,7 +538,7 @@ class HtmlVarDumpTheme implements VarDumpTheme {
      * Hook to generate output before the first print
      * @return string Output before the first print
      */
-    public function beforeFirstPrint() {
+    public function beforeFirstDump() {
         return '<script>
             function gotoVardump(id) {
                 expandAllVardump(' . self::$printId . ');
@@ -609,7 +609,7 @@ class HtmlVarDumpTheme implements VarDumpTheme {
      * Hook to generate output before the print
      * @return string Output before the print
      */
-    public function beforePrint($trace) {
+    public function beforeDump($trace) {
         $output = '<div style="' . $this->styles['container'] . '">';
         $output .= '<div style="' . $this->styles['trace'] . '">' . htmlentities($trace) . '</div>' . "\n";
         $output .= '<div>';
@@ -625,7 +625,7 @@ class HtmlVarDumpTheme implements VarDumpTheme {
      * Hook to generate output after the print
      * @return string Output after the print
      */
-    public function afterPrint() {
+    public function afterDump() {
         self::$printId++;
 
         return '</div>';

@@ -1,3 +1,7 @@
+# [2.1.2]
+## Updated
+- renamed print() to dump() for BC with old PHP versions
+
 # [2.1.1]
 ## Updated 
 - readme
