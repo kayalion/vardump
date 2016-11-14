@@ -61,6 +61,36 @@ if (!function_exists('dc')) {
 class VarDump {
 
     /**
+     * Default maximum recursive depth
+     * @var integer
+     */
+    const DEFAULT_RECURSIVE_DEPTH = 10;
+
+    /**
+     * Default maximum length for the preview of a string
+     * @var integer
+     */
+    const DEFAULT_STRING_LENGTH = 100;
+
+    /**
+     * Default flag to see if object methods should be included
+     * @var boolean
+     */
+    const DEFAULT_METHODS = true;
+
+    /**
+     * Default theme for a CLI environment
+     * @var string
+     */
+    const DEFAULT_THEME_CLI = 'CliVarDumpTheme';
+
+    /**
+     * Default theme for a HTML environment
+     * @var string
+     */
+    const DEFAULT_THEME_HTML = 'SpidermanHtmlVarDumpTheme';
+
+    /**
      * Constructs a new dump
      * @param integer $recursiveDepth Maximum level of recursiveness
      * @param integer $stringLength Maximum length for the preview of a string
@@ -71,21 +101,31 @@ class VarDump {
      */
     public function __construct($recursiveDepth = null, $stringLength = null, $includeMethods = null, VarDumpTheme $theme = null) {
         if ($recursiveDepth === null) {
-            $recursiveDepth = isset($_ENV['VAR_DUMP_RECURSIVE_DEPTH']) ? $_ENV['VAR_DUMP_RECURSIVE_DEPTH'] : 10;
+            $recursiveDepth = isset($_ENV['VAR_DUMP_RECURSIVE_DEPTH']) ? $_ENV['VAR_DUMP_RECURSIVE_DEPTH'] : self::DEFAULT_RECURSIVE_DEPTH;
+        }
+        if (!is_numeric($recursiveDepth) || $recursiveDepth < 0) {
+            throw new Exception('Could not set maximum recursive depth: number greater than 0 expected');
         }
 
         if ($stringLength === null) {
-            $stringLength = isset($_ENV['VAR_DUMP_STRING_LENGTH']) ? $_ENV['VAR_DUMP_STRING_LENGTH'] : 100;
+            $stringLength = isset($_ENV['VAR_DUMP_STRING_LENGTH']) ? $_ENV['VAR_DUMP_STRING_LENGTH'] : self::DEFAULT_STRING_LENGTH;
+        }
+        if (!is_numeric($stringLength) || $stringLength < 0) {
+            throw new Exception('Could not set maximum string length: number greater than 0 expected');
         }
 
         if ($includeMethods === null) {
-            $includeMethods = isset($_ENV['VAR_DUMP_METHODS']) ? $_ENV['VAR_DUMP_METHODS'] : true;
+            $includeMethods = isset($_ENV['VAR_DUMP_METHODS']) ? $_ENV['VAR_DUMP_METHODS'] : self::DEFAULT_METHODS;
+        }
+        if (!is_bool($includeMethods)) {
+            throw new Exception('Could not set include methods flag: boolean expected');
+            $recursiveDepth = self::DEFAULT_METHODS;
         }
 
         $this->recursiveDepth = 0;
-        $this->recursiveMaximum = $recursiveDepth;
+        $this->recursiveMaximum = (integer) $recursiveDepth;
 
-        $this->stringLength = $stringLength;
+        $this->stringLength = (integer) $stringLength;
         $this->stringSearch = array("\0", "\a", "\b", "\f", "\n", "\r", "\t", "\v");
         $this->stringReplace = array('\0', '\a', '\b', '\f', '\n', '\r', '\t', '\v');
 
@@ -106,12 +146,17 @@ class VarDump {
     public function setTheme(VarDumpTheme $theme = null) {
         if ($theme == null) {
             if (php_sapi_name() === 'cli') {
-                $themeName = isset($_ENV['VAR_DUMP_THEME_CLI']) ? $_ENV['VAR_DUMP_THEME_CLI'] : 'CliVarDumpTheme';
+                $theme = isset($_ENV['VAR_DUMP_THEME_CLI']) ? $_ENV['VAR_DUMP_THEME_CLI'] : self::DEFAULT_THEME_CLI;
             } else {
-                $themeName = isset($_ENV['VAR_DUMP_THEME_HTML']) ? $_ENV['VAR_DUMP_THEME_HTML'] : 'SpidermanHtmlVarDumpTheme';
+                $theme = isset($_ENV['VAR_DUMP_THEME_HTML']) ? $_ENV['VAR_DUMP_THEME_HTML'] : self::DEFAULT_THEME_HTML;
             }
 
-            $theme = new $themeName();
+            if (is_string($theme)) {
+                $theme = new $theme();
+            }
+            if (!$theme instanceof VarDumpTheme) {
+                throw new Exception('Could not set theme: instance of VarDumpTheme expected');
+            }
         }
 
         $this->theme = $theme;
@@ -136,6 +181,8 @@ class VarDump {
         $output .= $this->theme->afterDump();
 
         echo $output;
+
+        $this->theme->afterOutput();
     }
 
     /**
@@ -350,23 +397,29 @@ class VarDump {
 interface VarDumpTheme {
 
     /**
-     * Hook to generate output before the first print
-     * @return string Output before the first print
+     * Hook to generate output before the first variable dump
+     * @return string Output before the first variable dump
      */
     public function beforeFirstDump();
 
     /**
-     * Hook to generate output before the print
+     * Hook to generate output before the variable dump
      * @param string $trace File and linenumber where the output is generated
-     * @return string Output before the print
+     * @return string Output before the variable dump
      */
     public function beforeDump($trace);
 
     /**
-     * Hook to generate output after the print
-     * @return string Output after the print
+     * Hook to generate output after the variable dump
+     * @return string Output after the variable dump
      */
     public function afterDump();
+
+    /**
+     * Hook to do things when the output is printed
+     * @return string Output after the print
+     */
+    public function afterOutput();
 
     /**
      * Formats a single value
@@ -403,27 +456,35 @@ interface VarDumpTheme {
  class CliVarDumpTheme implements VarDumpTheme {
 
     /**
-     * Hook to generate output before the first print
-     * @return string Output before the first print
+     * Hook to generate output before the first variable dump
+     * @return string Output before the first variable dump
      */
     public function beforeFirstDump() {
         return null;
     }
 
     /**
-     * Hook to generate output before the print
-     * @return string Output before the print
+     * Hook to generate output before the variable dump
+     * @return string Output before the variable dump
      */
     public function beforeDump($trace) {
         return "\n[" . $trace . "]\n";
     }
 
     /**
-     * Hook to generate output after the print
-     * @return string Output after the print
+     * Hook to generate output after the variable dump
+     * @return string Output after the variable dump
      */
     public function afterDump() {
         return "\n";
+    }
+
+    /**
+     * Hook to do things when the output is printed
+     * @return string Output after the print
+     */
+    public function afterOutput() {
+
     }
 
     /**
@@ -473,6 +534,90 @@ interface VarDumpTheme {
      */
     public function formatListItems(array $items) {
         return implode("\n", $items);
+    }
+
+}
+
+/**
+ * File dump theme
+ */
+class FileVarDumpTheme extends CliVarDumpTheme {
+
+    /**
+     * Constructs a new file theme
+     * @param string $file Path to the file
+     * @param string $truncateSize Size in KB when the dump file should be
+     * truncated
+     * @return null
+     */
+    public function __construct($file, $truncateSize = 1024) {
+        if (!is_string($file) || $file === '') {
+            throw new Exception('Could not set file: non empty string exprected');
+        }
+
+        if (!is_numeric($truncateSize) || $truncateSize <= 0) {
+            throw new Exception('Could not set truncate size: number greater than 0 expected');
+        }
+
+        $this->file = $file;
+        $this->truncateSize = $truncateSize;
+
+        $this->sessionSeparator = "=====================";
+        $this->dumpSeparator = "---------------------";
+    }
+
+    /**
+     * Hook to generate output before the first variable dump
+     * @return string Output before the first variable dump
+     */
+    public function beforeFirstDump() {
+        return "\n" . $this->sessionSeparator . "\n" . date("Y-m-d H:i:s") . "\n";
+    }
+
+    /**
+     * Hook to generate output before the variable dump
+     * @return string Output before the variable dump
+     */
+    public function beforeDump($trace) {
+        ob_start();
+
+        return "\n[" . $trace . "]\n";
+    }
+
+    /**
+     * Hook to generate output after the variable dump
+     * @return string Output after the variable dump
+     */
+    public function afterDump() {
+        return "\n" . $this->dumpSeparator . "\n";
+    }
+
+    /**
+     * Hook to do things when the output is printed
+     * @return string Output after the print
+     */
+    public function afterOutput() {
+        $output = ob_get_contents();
+        ob_end_clean();
+
+        $status = @file_put_contents($this->file, $output, FILE_APPEND | LOCK_EX);
+        if ($status === false) {
+            throw new Exception('Could not write to ' . $this->file);
+        }
+
+        $fileSize = filesize($this->file) / 1024; // we work with kb
+        if ($fileSize < $this->truncateSize) {
+            return;
+        }
+
+        if (strlen($output) * 1024 > $this->truncateSize) {
+            $output = '';
+        }
+
+        $status = @file_put_contents($this->file, $output, LOCK_EX);
+        if ($status === false) {
+            throw new Exception('Could not write to ' . $this->file);
+        }
     }
 
 }
@@ -535,8 +680,8 @@ class HtmlVarDumpTheme implements VarDumpTheme {
     }
 
     /**
-     * Hook to generate output before the first print
-     * @return string Output before the first print
+     * Hook to generate output before the first variable dump
+     * @return string Output before the first variable dump
      */
     public function beforeFirstDump() {
         return '<script>
@@ -606,8 +751,8 @@ class HtmlVarDumpTheme implements VarDumpTheme {
     }
 
     /**
-     * Hook to generate output before the print
-     * @return string Output before the print
+     * Hook to generate output before the variable dump
+     * @return string Output before the variable dump
      */
     public function beforeDump($trace) {
         $output = '<div style="' . $this->styles['container'] . '">';
@@ -622,13 +767,21 @@ class HtmlVarDumpTheme implements VarDumpTheme {
     }
 
     /**
-     * Hook to generate output after the print
-     * @return string Output after the print
+     * Hook to generate output after the variable dump
+     * @return string Output after the variable dump
      */
     public function afterDump() {
         self::$printId++;
 
         return '</div>';
+    }
+
+    /**
+     * Hook to do things when the output is printed
+     * @return string Output after the print
+     */
+    public function afterOutput() {
+
     }
 
     /**
