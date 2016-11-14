@@ -1,42 +1,60 @@
 <?php
 
-/**
- * Shortcut to dump a value for debug purposes
- * @param mixed $arg1 First value to print
- * @param mixed $arg2 Second value to print
- * @param mixed $arg3 ...
- * @return null
- */
-function d() {
-    static $varDump;
+if (!function_exists('d')) {
+    /**
+     * Shortcut to print a variable for debug purposes
+     * @param mixed $variable1 First variable to print
+     * @param mixed $variable2 Second variable to print
+     * @param mixed $variable3 ...
+     * @return null
+     */
+    function d() {
+        static $varDump;
 
-    if (!$varDump) {
-        $varDump = new VarDump();
+        if (!$varDump) {
+            $varDump = new VarDump();
+        }
+
+        $variables = func_get_args();
+        foreach ($variables as $variable) {
+            $varDump->print($variable);
+        }
     }
+}
 
-    $variables = func_get_args();
-    foreach ($variables as $variable) {
+if (!function_exists('dd')) {
+    /**
+     * Shortcut to print a value for debug purposes. This function will stop your
+     * script after the print
+     * @param mixed $variable1 First variable to print
+     * @param mixed $variable2 Second variable to print
+     * @param mixed $variable3 ...
+     * @return null
+     */
+    function dd() {
+        call_user_func_array('d', func_get_args());
+
+        exit;
+    }
+}
+
+if (!function_exists('dc')) {
+    /**
+     * Shortcut to print a value for debug purposes.
+     * @param mixed $variable Variable to print
+     * @param integer $recursiveDepth Maximum level of recursiveness
+     * @param integer $stringLength Maximum length for the preview of a string
+     * @param VarDumpTheme $theme Theme for the output
+     * @return null
+     */
+    function dc($variable, $recursiveDepth = null, $stringLength = null, VarDumpTheme $theme = null) {
+        $varDump = new VarDump($recursiveDepth, $stringLength, $theme);
         $varDump->print($variable);
     }
-
 }
 
 /**
- * Shortcut to dump a value for debug purposes. This function will stop your
- * script after the dump
- * @param mixed $arg1 First value to print
- * @param mixed $arg2 Second value to print
- * @param mixed $arg3 ...
- * @return null
- */
-function dd() {
-    call_user_func_array('d', func_get_args());
-
-    exit;
-}
-
-/**
- * Class to dump variables like vardump
+ * Class to print variables like var_dump
  */
 class VarDump {
 
@@ -81,7 +99,7 @@ class VarDump {
             if (php_sapi_name() === 'cli') {
                 $themeName = isset($_ENV['VAR_DUMP_THEME_CLI']) ? $_ENV['VAR_DUMP_THEME_CLI'] : 'CliVarDumpTheme';
             } else {
-                $themeName = isset($_ENV['VAR_DUMP_THEME_HTML']) ? $_ENV['VAR_DUMP_THEME_HTML'] : 'HtmlVarDumpTheme';
+                $themeName = isset($_ENV['VAR_DUMP_THEME_HTML']) ? $_ENV['VAR_DUMP_THEME_HTML'] : 'SpidermanHtmlVarDumpTheme';
             }
 
             $theme = new $themeName();
@@ -99,14 +117,14 @@ class VarDump {
         $output = '';
 
         if ($this->isFirst) {
+            $this->isFirst = false;
+
             $output .= $this->theme->beforeFirstPrint();
         }
 
         $output .= $this->theme->beforePrint($this->getTrace());
         $output .= $this->getValue($value);
         $output .= $this->theme->afterPrint();
-
-        $this->isFirst = false;
 
         echo $output;
     }
@@ -128,8 +146,6 @@ class VarDump {
                 return $this->theme->formatValue('boolean', $value ? 'true' : 'false', null, $showType, $encode);
             case 'NULL':
                 return $this->theme->formatValue(null, 'null', null, $showType, $encode);
-            case 'unknown type':
-                return $this->theme->formatValue('unknown', '???', null, $showType, $encode);
             case 'integer':
             case 'double':
             case 'resource':
@@ -140,6 +156,8 @@ class VarDump {
                 return $this->getArrayValue($value, $showType, $encode);
             case 'object':
                 return $this->getObjectValue($value);
+            default:
+                return $this->theme->formatValue('unknown', '???', null, $showType, $encode);
         }
     }
 
@@ -185,11 +203,14 @@ class VarDump {
     private function getArrayValue($array, $showType, $encode) {
         $numItems = count($array);
         if ($numItems == 0) {
+            // empty array
             return $this->theme->formatValue('array(0)', '[]', null, $showType, $encode);
         } elseif ($this->recursiveDepth == $this->recursiveMaximum) {
+            // too deep in recursiveness
             return $this->theme->formatValue('array(' . $numItems . ')', '[...]', null, $showType, $encode);
         }
 
+        // retrieve array dump
         $this->recursiveDepth++;
 
         $items = array();
@@ -221,7 +242,7 @@ class VarDump {
             return $this->theme->formatValue($className . '#' . $this->objectId, '{...}', null);
         }
 
-        // retrieve instance dump
+        // retrieve object instance dump
         $id = $this->objectId++;
         $this->recursiveDepth++;
 
@@ -353,7 +374,7 @@ interface VarDumpTheme {
      * @param string $value Formatted display of the value
      * @return string Output of the list item
      */
-    public function formatListItem($key, $value);
+    public function formatListItem($key, $value = null);
 
     /**
      * Formats a list from items
@@ -391,7 +412,7 @@ interface VarDumpTheme {
      * @return string Output after the print
      */
     public function afterPrint() {
-        return null;
+        return "\n";
     }
 
     /**
@@ -429,7 +450,7 @@ interface VarDumpTheme {
      * @param string $value Formatted display of the value
      * @return string Output of the list item
      */
-    public function formatListItem($key, $value) {
+    public function formatListItem($key, $value = null) {
         return '- ' . $key . ($value !== null ? ' => ' . $value : '');
     }
 
@@ -457,6 +478,24 @@ class HtmlVarDumpTheme implements VarDumpTheme {
     protected $colors;
 
     /**
+     * Style definitions
+     * @var array
+     */
+    protected $styles;
+
+    /**
+     * Id of the print call
+     * @var integer
+     */
+    private static $printId = 1;
+
+    /**
+     * Id of the curent element
+     * @var integer
+     */
+    private static $elementId = 1;
+
+    /**
      * Constructs a new HTML theme
      * @return null
      */
@@ -473,7 +512,7 @@ class HtmlVarDumpTheme implements VarDumpTheme {
         }
 
         $this->styles = array(
-            'container' => 'font-family: monospace; padding: 1em; margin: 1em; line-height: 1.5em; border: 1px solid ' . $this->colors['general-border'] . '; color: ' . $this->colors['general-text'] . '; background-color: ' . $this->colors['general-background'],
+            'container' => 'font-family: monospace; padding: 1em; margin: 1em; line-height: 1.5em; border-radius: 5px; border: 1px solid ' . $this->colors['general-border'] . '; color: ' . $this->colors['general-text'] . '; background-color: ' . $this->colors['general-background'],
             'trace' => 'font-size: 0.8em',
             'link' => 'font-size: 0.8em; color: '. $this->colors['general-link'],
             'code' => 'background-color: ' . $this->colors['code-background'] . '; color: ' . $this->colors['code-text'],
@@ -482,9 +521,6 @@ class HtmlVarDumpTheme implements VarDumpTheme {
             'expand-string' => 'margin-left: 1.5em',
             'expand-block' => 'display: none',
         );
-
-        $this->printId = 1;
-        $this->elementId = 1;
     }
 
     /**
@@ -494,7 +530,7 @@ class HtmlVarDumpTheme implements VarDumpTheme {
     public function beforeFirstPrint() {
         return '<script>
             function gotoVardump(id) {
-                expandAllVardump(' . $this->printId . ');
+                expandAllVardump(' . self::$printId . ');
 
                 var url = "" + window.location;
 
@@ -566,9 +602,9 @@ class HtmlVarDumpTheme implements VarDumpTheme {
         $output = '<div style="' . $this->styles['container'] . '">';
         $output .= '<div style="' . $this->styles['trace'] . '">' . htmlentities($trace) . '</div>' . "\n";
         $output .= '<div>';
-        $output .= '<a style="' . $this->styles['link'] . '" href="#" onclick="return expandAllVardump(' . $this->printId . ');">[expand all]</a>';
+        $output .= '<a style="' . $this->styles['link'] . '" href="#" onclick="return expandAllVardump(' . self::$printId . ');">[expand all]</a>';
         $output .= ' ';
-        $output .= '<a style="' . $this->styles['link'] . '" href="#" onclick="return reduceAllVardump(' . $this->printId . ');">[reduce all]</a>';
+        $output .= '<a style="' . $this->styles['link'] . '" href="#" onclick="return reduceAllVardump(' . self::$printId . ');">[reduce all]</a>';
         $output .= '</div>';
 
         return $output;
@@ -579,7 +615,7 @@ class HtmlVarDumpTheme implements VarDumpTheme {
      * @return string Output after the print
      */
     public function afterPrint() {
-        $this->printId++;
+        self::$printId++;
 
         return '</div>';
     }
@@ -615,13 +651,13 @@ class HtmlVarDumpTheme implements VarDumpTheme {
         }
 
         if ($full && $full !== $short) {
-            $this->elementId++;
+            self::$elementId++;
 
-            $this->anchors[$id] = $this->elementId;
+            $this->anchors[$id] = self::$elementId;
 
-            $output .= ' <a style="' . $this->styles['link'] . '" href="#" id="vardump-link-' . $this->elementId . '" class="vardump-link-' . $this->printId . '" onclick="return toggleVardump(' . $this->elementId . ');">[expand]</a> ';
-            $output .= '<a name="vardump-anchor-' . $this->elementId . '"></a>';
-            $output .= '<div style="' . $this->styles['expand-block'] . '" id="vardump-block-' . $this->elementId . '" class="vardump-block-' . $this->printId . '">';
+            $output .= ' <a style="' . $this->styles['link'] . '" href="#" id="vardump-link-' . self::$elementId . '" class="vardump-link-' . self::$printId . '" onclick="return toggleVardump(' . self::$elementId . ');">[expand]</a> ';
+            $output .= '<a name="vardump-anchor-' . self::$elementId . '"></a>';
+            $output .= '<div style="' . $this->styles['expand-block'] . '" id="vardump-block-' . self::$elementId . '" class="vardump-block-' . self::$printId . '">';
             if (substr($full, 0, 3) == '<ul') {
                 $output .= $full;
             } else {
@@ -641,7 +677,7 @@ class HtmlVarDumpTheme implements VarDumpTheme {
      * @param string $value Formatted display of the value
      * @return string Output of the list item
      */
-    public function formatListItem($key, $value) {
+    public function formatListItem($key, $value = null) {
         return '<li class="' . $this->styles['list-item'] . '">' . $key . ($value !== null ? ' => ' . $value : '') . '</li>';
     }
 
@@ -658,9 +694,81 @@ class HtmlVarDumpTheme implements VarDumpTheme {
 }
 
 /**
- * Blue HTML dump theme
+ * Batman HTML dump theme
  */
- class BlueHtmlVarDumpTheme extends HtmlVarDumpTheme {
+class BatmanHtmlVarDumpTheme extends HtmlVarDumpTheme {
+
+    /**
+     * Constructs a new HTML theme
+     * @return null
+     */
+    public function __construct() {
+        $this->colors = array(
+            'general-background' => 'black',
+            'general-text' => 'gold',
+            'general-link' => 'lightgray',
+            'general-border' => 'black',
+            'code-background' => 'black',
+            'code-text' => 'yellow',
+        );
+
+        parent::__construct();
+    }
+
+}
+
+/**
+ * Hulk HTML dump theme
+ */
+ class HulkHtmlVarDumpTheme extends HtmlVarDumpTheme {
+
+    /**
+     * Constructs a new HTML theme
+     * @return null
+     */
+    public function __construct() {
+        $this->colors = array(
+            'general-background' => 'honeydew',
+            'general-text' => 'green',
+            'general-link' => 'darkgreen',
+            'general-border' => 'green',
+            'code-background' => 'white',
+            'code-text' => 'purple',
+        );
+
+        parent::__construct();
+    }
+
+}
+
+/**
+ * Ironman HTML dump theme
+ */
+ class IronmanHtmlVarDumpTheme extends HtmlVarDumpTheme {
+
+    /**
+     * Constructs a new HTML theme
+     * @return null
+     */
+    public function __construct() {
+        $this->colors = array(
+            'general-background' => 'snow',
+            'general-text' => 'red',
+            'general-link' => 'darkred',
+            'general-border' => 'red',
+            'code-background' => 'ivory',
+            'code-text' => 'darkred',
+        );
+
+        parent::__construct();
+    }
+
+}
+
+/**
+ * Spiderman HTML dump theme
+ */
+ class SpidermanHtmlVarDumpTheme extends HtmlVarDumpTheme {
 
     /**
      * Constructs a new HTML theme
@@ -682,9 +790,9 @@ class HtmlVarDumpTheme implements VarDumpTheme {
 }
 
 /**
- * Red HTML dump theme
+ * Superman HTML dump theme
  */
- class RedHtmlVarDumpTheme extends HtmlVarDumpTheme {
+ class SupermanHtmlVarDumpTheme extends HtmlVarDumpTheme {
 
     /**
      * Constructs a new HTML theme
@@ -692,59 +800,11 @@ class HtmlVarDumpTheme implements VarDumpTheme {
      */
     public function __construct() {
         $this->colors = array(
-            'general-background' => 'snow',
-            'general-text' => 'red',
-            'general-link' => 'darkred',
-            'general-border' => 'red',
-            'code-background' => 'white',
-            'code-text' => 'blue',
-        );
-
-        parent::__construct();
-    }
-
-}
-
-/**
- * Green HTML dump theme
- */
- class GreenHtmlVarDumpTheme extends HtmlVarDumpTheme {
-
-    /**
-     * Constructs a new HTML theme
-     * @return null
-     */
-    public function __construct() {
-        $this->colors = array(
-            'general-background' => 'honeydew',
-            'general-text' => 'green',
-            'general-link' => 'darkgreen',
-            'general-border' => 'green',
-            'code-background' => 'white',
-            'code-text' => 'red',
-        );
-
-        parent::__construct();
-    }
-
-}
-
-/**
- * Brown HTML dump theme
- */
- class BrownHtmlVarDumpTheme extends HtmlVarDumpTheme {
-
-    /**
-     * Constructs a new HTML theme
-     * @return null
-     */
-    public function __construct() {
-        $this->colors = array(
-            'general-background' => 'linen',
-            'general-text' => 'brown',
-            'general-link' => 'darkbrown',
-            'general-border' => 'brown',
-            'code-background' => 'white',
+            'general-background' => 'aliceblue',
+            'general-text' => 'blue',
+            'general-link' => 'blue',
+            'general-border' => 'blue',
+            'code-background' => 'LightYellow',
             'code-text' => 'red',
         );
 
