@@ -25,9 +25,10 @@ dd("any variable", "any other variable");
 // prints one variable with a specific dump configuration
 $maxRecursiveDepth = 10;
 $maxStringLength = 100;
-$theme = new HulkHtmlVarDumpTheme();
+$includeMethods = true;
+$theme = new SpidermanHtmlVarDumpTheme();
 
-dc("any variable", $maxRecursiveDepth, $maxStringLength, $theme);
+dc("any variable", $maxRecursiveDepth, $maxStringLength, $includeMethods, $theme);
 
 // as called for the sample the screenshots
 d([
@@ -41,12 +42,25 @@ d([
 ]);
 ```
 
+## Screenshots
+
+Output on a HTML page:
+
+![Screenshot HTML](screenshot-html.png "Screenshot HTML")
+
+Output in a CLI:
+
+![Screenshot CLI](screenshot-cli.png "Screenshot CLI")
+
 ## Configuration
 
 You can use the environment variable to configure the vardump.
 
 ```php
 <?php
+
+// Flag to see if object methods should be included
+$_ENV['VAR_DUMP_METHODS'] = true;
 
 // Maximum depth for arrays and objects
 $_ENV['VAR_DUMP_RECURSIVE_DEPTH'] = 10;
@@ -66,14 +80,6 @@ $_ENV['VAR_DUMP_THEME_CLI'] = 'CliVarDumpTheme';
 // - SupermanHtmlVarDumpTheme,
 $_ENV['VAR_DUMP_THEME_HTML'] = 'SpidermanHtmlVarDumpTheme';
 ```
-
-## Screenshots
-
-Output on a HTML page:
-![Screenshot HTML](screenshot-html.png "Screenshot HTML")
-
-Output in a CLI:
-![Screenshot CLI](screenshot-cli.png "Screenshot CLI")
 
 ## Installation
 
