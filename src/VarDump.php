@@ -44,11 +44,13 @@ if (!function_exists('dc')) {
      * @param mixed $variable Variable to print
      * @param integer $recursiveDepth Maximum level of recursiveness
      * @param integer $stringLength Maximum length for the preview of a string
+     * @param boolean $includeMethods Flag to see if object methods should be
+     * included
      * @param VarDumpTheme $theme Theme for the output
      * @return null
      */
-    function dc($variable, $recursiveDepth = null, $stringLength = null, VarDumpTheme $theme = null) {
-        $varDump = new VarDump($recursiveDepth, $stringLength, $theme);
+    function dc($variable, $recursiveDepth = null, $stringLength = null, $includeMethods = null, VarDumpTheme $theme = null) {
+        $varDump = new VarDump($recursiveDepth, $stringLength, $includeMethods, $theme);
         $varDump->print($variable);
     }
 }
@@ -62,16 +64,22 @@ class VarDump {
      * Constructs a new dump
      * @param integer $recursiveDepth Maximum level of recursiveness
      * @param integer $stringLength Maximum length for the preview of a string
+     * @param boolean $includeMethods Flag to see if object methods should be
+     * included
      * @param VarDumpTheme $theme Theme for the output, null for automatic
      * @return null
      */
-    public function __construct($recursiveDepth = null, $stringLength = null, VarDumpTheme $theme = null) {
+    public function __construct($recursiveDepth = null, $stringLength = null, $includeMethods = null, VarDumpTheme $theme = null) {
         if ($recursiveDepth === null) {
             $recursiveDepth = isset($_ENV['VAR_DUMP_RECURSIVE_DEPTH']) ? $_ENV['VAR_DUMP_RECURSIVE_DEPTH'] : 10;
         }
 
         if ($stringLength === null) {
             $stringLength = isset($_ENV['VAR_DUMP_STRING_LENGTH']) ? $_ENV['VAR_DUMP_STRING_LENGTH'] : 100;
+        }
+
+        if ($includeMethods === null) {
+            $includeMethods = isset($_ENV['VAR_DUMP_METHODS']) ? $_ENV['VAR_DUMP_METHODS'] : true;
         }
 
         $this->recursiveDepth = 0;
@@ -81,6 +89,7 @@ class VarDump {
         $this->stringSearch = array("\0", "\a", "\b", "\f", "\n", "\r", "\t", "\v");
         $this->stringReplace = array('\0', '\a', '\b', '\f', '\n', '\r', '\t', '\v');
 
+        $this->includeMethods = $includeMethods;
         $this->objects = array();
         $this->objectId = 0;
 
@@ -262,11 +271,13 @@ class VarDump {
         }
 
         // instance methods
-        $class = new ReflectionClass($className);
-        $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
+        if ($this->includeMethods) {
+            $class = new ReflectionClass($className);
+            $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
 
-        foreach ($methods as $method) {
-            $items[] = $this->theme->formatListItem($this->getValue($this->getMethodSignature($method), false), null);
+            foreach ($methods as $method) {
+                $items[] = $this->theme->formatListItem($this->getValue($this->getMethodSignature($method), false), null);
+            }
         }
 
         $this->recursiveDepth--;
