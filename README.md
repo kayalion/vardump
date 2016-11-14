@@ -66,7 +66,7 @@ $_ENV['VAR_DUMP_RECURSIVE_DEPTH'] = 10;
 // Maximum length for the preview of a string
 $_ENV['VAR_DUMP_STRING_LENGTH'] = 100;
 
-// Name of the CLI theme class, only one implemented
+// Name of the CLI theme class
 $_ENV['VAR_DUMP_THEME_CLI'] = 'CliVarDumpTheme';
 
 // Name of the HTML theme class, choose between:
