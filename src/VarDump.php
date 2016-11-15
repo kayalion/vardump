@@ -134,6 +134,7 @@ class VarDump {
         $this->objectId = 0;
 
         $this->isFirst = true;
+        $this->isPhp7 = version_compare(PHP_VERSION, '7.0.0') >= 0;
 
         $this->setTheme($theme);
     }
@@ -347,7 +348,7 @@ class VarDump {
         foreach ($parameters as $index => $parameter) {
             $value = '';
 
-            if ($parameter->hasType()) {
+            if ($this->isPhp7 && $parameter->hasType()) {
                 $value .= $parameter->getType() . ' ';
             }
 
