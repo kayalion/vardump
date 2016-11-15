@@ -1,14 +1,14 @@
 <?php
 
-if (!function_exists('d')) {
+if (!function_exists('vd')) {
     /**
-     * Shortcut to print a variable for debug purposes
+     * Shortcut to dump a variable for debug purposes
      * @param mixed $variable1 First variable to print
      * @param mixed $variable2 Second variable to print
      * @param mixed $variable3 ...
      * @return null
      */
-    function d() {
+    function vd() {
         static $varDump;
 
         if (!$varDump) {
@@ -22,25 +22,25 @@ if (!function_exists('d')) {
     }
 }
 
-if (!function_exists('dd')) {
+if (!function_exists('vdd')) {
     /**
-     * Shortcut to print a value for debug purposes. This function will stop your
-     * script after the print
+     * Shortcut to dump a variable for debug purposes. This function will stop
+     * your script after the dump
      * @param mixed $variable1 First variable to print
      * @param mixed $variable2 Second variable to print
      * @param mixed $variable3 ...
      * @return null
      */
-    function dd() {
-        call_user_func_array('d', func_get_args());
+    function vdd() {
+        call_user_func_array('vd', func_get_args());
 
         exit;
     }
 }
 
-if (!function_exists('dc')) {
+if (!function_exists('vdc')) {
     /**
-     * Shortcut to print a value for debug purposes.
+     * Shortcut to dump a variable for debug purposes.
      * @param mixed $variable Variable to print
      * @param integer $recursiveDepth Maximum level of recursiveness
      * @param integer $stringLength Maximum length for the preview of a string
@@ -49,7 +49,7 @@ if (!function_exists('dc')) {
      * @param VarDumpTheme $theme Theme for the output
      * @return null
      */
-    function dc($variable, $recursiveDepth = null, $stringLength = null, $includeMethods = null, VarDumpTheme $theme = null) {
+    function vdc($variable, $recursiveDepth = null, $stringLength = null, $includeMethods = null, VarDumpTheme $theme = null) {
         $varDump = new VarDump($recursiveDepth, $stringLength, $includeMethods, $theme);
         $varDump->dump($variable);
     }
