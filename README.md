@@ -7,29 +7,29 @@ PHP Helper library to print variables for debugging purposes.
 ```php
 <?php
 
-// prints a variable
-d("any variable");
+// dumps a variable
+vd("any variable");
 
 // or multiple variables, as many as your memory can handle
-d("any variable", "any other variable");
+vd("any variable", "any other variable");
 
-// prints a variable and exits
-dd("any variable");
+// dumps a variable and dies
+vdd("any variable");
 
 // or with multiple variables
-dd("any variable", "any other variable");
+vdd("any variable", "any other variable");
 
-// prints one variable with a specific dump configuration
+// dumps one variable with a specific configuration
 // set any configuration parameter to null to use the global value
 $maxRecursiveDepth = 10;
 $maxStringLength = 100;
 $includeMethods = true;
 $theme = new SpidermanHtmlVarDumpTheme();
 
-dc("any variable", $maxRecursiveDepth, $maxStringLength, $includeMethods, $theme);
+vdc("any variable", $maxRecursiveDepth, $maxStringLength, $includeMethods, $theme);
 
-// as called for the sample the screenshots
-d([
+// as called for the sample screenshots
+vd([
     null,
     true,
     42,
@@ -81,7 +81,7 @@ $_ENV['VAR_DUMP_THEME_HTML'] = 'SpidermanHtmlVarDumpTheme';
 
 ### Dump To File
 
-When you are debugging a web application with API requests, output can break your response or layout.
+When you are debugging a web application, output can break your layout or response, especially when developing a restful API.
 
 You can easily pipe the vardump output to a file using the file theme.
 

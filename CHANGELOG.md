@@ -1,3 +1,7 @@
+# [4.0.0]
+## Updated
+- changed shortcut functions to vd, vdd and vdc to be more unique in the PHP realm
+
 # [3.0.1]
 ## Updated
 - added check for PHP 7 when processing a method signature
