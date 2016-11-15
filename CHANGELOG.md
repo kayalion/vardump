@@ -1,3 +1,7 @@
+# [3.0.1]
+## Updated
+- added check for PHP 7 when processing a method signature
+
 # [3.0.0]
 ## Added
 - theme to dump to file
