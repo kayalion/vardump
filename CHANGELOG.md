@@ -1,3 +1,7 @@
+# [4.1.0]
+## Added
+- added vdcd to die after a configured dump
+
 # [4.0.0]
 ## Updated
 - changed shortcut functions to vd, vdd and vdc to be more unique in the PHP realm

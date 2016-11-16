@@ -55,6 +55,25 @@ if (!function_exists('vdc')) {
     }
 }
 
+if (!function_exist('vdcd')) {
+    /**
+     * Shortcut to dump a variable for debug purposes. This function will stop
+     * your script after the dump
+     * @param mixed $variable Variable to print
+     * @param integer $recursiveDepth Maximum level of recursiveness
+     * @param integer $stringLength Maximum length for the preview of a string
+     * @param boolean $includeMethods Flag to see if object methods should be
+     * included
+     * @param VarDumpTheme $theme Theme for the output
+     * @return null
+     */
+    function vdcd($variable, $recursiveDepth = null, $stringLength = null, $includeMethods = null, VarDumpTheme $theme = null) {
+        vdc($variable, $recursiveDepth, $stringLength, $includeMethods, $theme);
+
+        exit;
+    }
+}
+
 /**
  * Class to print variables like var_dump
  */

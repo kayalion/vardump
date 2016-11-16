@@ -28,6 +28,9 @@ $theme = new SpidermanHtmlVarDumpTheme();
 
 vdc("any variable", $maxRecursiveDepth, $maxStringLength, $includeMethods, $theme);
 
+// dumps one variable with a specific configuration and dies
+vdcd("any variable", $maxRecursiveDepth, $maxStringLength, $includeMethods, $theme);
+
 // as called for the sample screenshots
 vd([
     null,
