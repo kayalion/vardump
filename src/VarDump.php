@@ -55,7 +55,7 @@ if (!function_exists('vdc')) {
     }
 }
 
-if (!function_exist('vdcd')) {
+if (!function_exists('vdcd')) {
     /**
      * Shortcut to dump a variable for debug purposes. This function will stop
      * your script after the dump

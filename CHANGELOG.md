@@ -1,3 +1,7 @@
+# [4.1.1]
+## Updated
+- whoopsie: function_exists
+
 # [4.1.0]
 ## Added
 - added vdcd to die after a configured dump
